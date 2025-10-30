@@ -1,0 +1,20 @@
+meta {
+  name: Get Data Book By ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5000/api/books/{{id}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  id: 2
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

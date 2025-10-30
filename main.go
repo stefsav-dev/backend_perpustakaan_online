@@ -1,9 +1,6 @@
 package main
 
 import (
-	"backend_perpustakaan_online/config"
-	"backend_perpustakaan_online/database"
-	"backend_perpustakaan_online/handlers"
 	"log"
 	"os"
 
@@ -12,11 +9,16 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
+
+	"backend_perpustakaan_online/config"
+	"backend_perpustakaan_online/database"
+	"backend_perpustakaan_online/handlers"
 )
 
 func main() {
+
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("No .env file found, using system environment variables")
 	}
 
 	config.ConnectDB()
@@ -27,17 +29,19 @@ func main() {
 		database.Seeder()
 	}
 
+	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:      "Library API",
 		ErrorHandler: errorHandler,
 	})
 
+	// Middleware
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowMethods: "GET,POST,PUT,PATCH,DELETE",
-		AllowHeaders: "Origin, Content-Type, Authorization",
+		AllowHeaders: "Content-Type,Authorization",
 	}))
 
 	bookHandler := handlers.NewBookHandler()
@@ -48,10 +52,10 @@ func main() {
 	books.Get("/", bookHandler.GetAllBooks)
 	books.Get("/:id", bookHandler.GetBookByID)
 	books.Post("/", bookHandler.CreateBook)
-	books.Put(":/id", bookHandler.UpdateBook)
-	books.Patch(":/id", bookHandler.UpdateBook)
-	books.Delete(":/id", bookHandler.DeleteBook)
-	books.Patch(":/books/:id", bookHandler.UpdateBookStatus)
+	books.Put("/:id", bookHandler.UpdateBook)
+	books.Patch("/:id", bookHandler.UpdateBook)
+	books.Delete("/:id", bookHandler.DeleteBook)
+	books.Patch("/:id/status", bookHandler.UpdateBookStatus)
 
 	app.Get("/health", func(c *fiber.Ctx) error {
 		sqlDB, err := config.DB.DB()
@@ -76,7 +80,6 @@ func main() {
 		})
 	})
 
-	// 404 Handler
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"success": false,
@@ -84,7 +87,6 @@ func main() {
 		})
 	})
 
-	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
@@ -97,7 +99,6 @@ func main() {
 func errorHandler(c *fiber.Ctx, err error) error {
 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 		"success": false,
-		"error":   "Internal server error: " + err.Error(),
+		"error":   "Internal server error",
 	})
-
 }

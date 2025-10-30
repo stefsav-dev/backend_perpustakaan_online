@@ -1,0 +1,30 @@
+meta {
+  name: Add Data Books
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:5000/api/books
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+        "title": "testing",
+        "author": "testing",
+        "isbn": "978-045228423",
+        "description": "testing",
+        "category": "testing",
+        "total_pages": 532,
+        "publisher": "testing",
+        "publisher_at": "1949-06-08T00:00:00+08:00",
+        "status": "available"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

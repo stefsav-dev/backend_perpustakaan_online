@@ -73,7 +73,7 @@ func (h *BookHandler) GetBookByID(c *fiber.Ctx) error {
 		})
 	}
 
-	book, err := h.bookRepo.GetBookByID(uint(id))
+	book, err := h.bookRepo.GetByID(uint(id))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
@@ -146,7 +146,7 @@ func (h *BookHandler) CreateBook(c *fiber.Ctx) error {
 		book.Status = bookReq.Status
 	}
 
-	if err := h.bookRepo.CreateDataBook(&book); err != nil {
+	if err := h.bookRepo.Create(&book); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
 			"error":   "Gagal Membuat data buku",
@@ -183,7 +183,7 @@ func (h *BookHandler) UpdateBook(c *fiber.Ctx) error {
 		})
 	}
 
-	existingBook, err := h.bookRepo.GetBookByID(uint(id))
+	existingBook, err := h.bookRepo.GetByID(uint(id))
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"success": false,
@@ -241,7 +241,7 @@ func (h *BookHandler) UpdateBook(c *fiber.Ctx) error {
 		existingBook.Status = bookReq.Status
 	}
 
-	if err := h.bookRepo.UpdateDataBook(existingBook); err != nil {
+	if err := h.bookRepo.Update(existingBook); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
 			"error":   "gagal update data buku",
@@ -277,14 +277,14 @@ func (h *BookHandler) DeleteBook(c *fiber.Ctx) error {
 		})
 	}
 
-	if _, err := h.bookRepo.GetBookByID(uint(id)); err != nil {
+	if _, err := h.bookRepo.GetByID(uint(id)); err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"success": false,
 			"error":   "Buku tidak ada",
 		})
 	}
 
-	if err := h.bookRepo.DeleteDataBook(uint(id)); err != nil {
+	if err := h.bookRepo.Delete(uint(id)); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"success": false,
 			"error":   "gagal delete data buku",
@@ -331,7 +331,7 @@ func (h *BookHandler) UpdateBookStatus(c *fiber.Ctx) error {
 	}
 
 	// Check if book exists
-	if _, err := h.bookRepo.GetBookByID(uint(id)); err != nil {
+	if _, err := h.bookRepo.GetByID(uint(id)); err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"success": false,
 			"error":   "Book not found",

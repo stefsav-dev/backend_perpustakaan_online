@@ -1,0 +1,16 @@
+meta {
+  name: Get All Data Books
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:5000/api/books
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

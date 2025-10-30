@@ -33,12 +33,14 @@ type BookFilter struct {
 	Limit    int
 }
 
+// GetAll books dengan pagination dan filter
 func (r *BookRepository) GetAll(filter BookFilter) ([]models.Book, *Pagination, error) {
 	var books []models.Book
 	var total int64
 
 	query := r.DB.Model(&models.Book{})
 
+	// Apply filters
 	if filter.Search != "" {
 		search := "%" + filter.Search + "%"
 		query = query.Where("title LIKE ? OR author LIKE ? OR isbn LIKE ?", search, search, search)
@@ -52,14 +54,15 @@ func (r *BookRepository) GetAll(filter BookFilter) ([]models.Book, *Pagination, 
 		query = query.Where("category = ?", filter.Category)
 	}
 
+	// Count total records
 	if err := query.Count(&total).Error; err != nil {
 		return nil, nil, err
 	}
 
+	// Calculate pagination
 	if filter.Page < 1 {
 		filter.Page = 1
 	}
-
 	if filter.Limit < 1 {
 		filter.Limit = 10
 	}
@@ -74,14 +77,17 @@ func (r *BookRepository) GetAll(filter BookFilter) ([]models.Book, *Pagination, 
 		TotalPage: totalPage,
 	}
 
-	err := query.Offset(offset).Limit(filter.Limit).Order("created_at desc").Find(&books).Error
+	// Execute query dengan pagination
+	err := query.Offset(offset).Limit(filter.Limit).Order("created_at DESC").Find(&books).Error
 	if err != nil {
 		return nil, nil, err
 	}
+
 	return books, pagination, nil
 }
 
-func (r *BookRepository) GetBookByID(id uint) (*models.Book, error) {
+// GetByID mencari book by ID
+func (r *BookRepository) GetByID(id uint) (*models.Book, error) {
 	var book models.Book
 	err := r.DB.First(&book, id).Error
 	if err != nil {
@@ -90,6 +96,7 @@ func (r *BookRepository) GetBookByID(id uint) (*models.Book, error) {
 	return &book, nil
 }
 
+// GetByISBN mencari book by ISBN
 func (r *BookRepository) GetByISBN(isbn string) (*models.Book, error) {
 	var book models.Book
 	err := r.DB.Where("isbn = ?", isbn).First(&book).Error
@@ -99,28 +106,33 @@ func (r *BookRepository) GetByISBN(isbn string) (*models.Book, error) {
 	return &book, nil
 }
 
-func (r *BookRepository) CreateDataBook(book *models.Book) error {
+// Create membuat book baru
+func (r *BookRepository) Create(book *models.Book) error {
 	return r.DB.Create(book).Error
 }
 
-func (r *BookRepository) UpdateDataBook(book *models.Book) error {
+// Update mengupdate book
+func (r *BookRepository) Update(book *models.Book) error {
 	return r.DB.Save(book).Error
 }
 
-func (r *BookRepository) DeleteDataBook(id uint) error {
+// Delete menghapus book (soft delete)
+func (r *BookRepository) Delete(id uint) error {
 	return r.DB.Delete(&models.Book{}, id).Error
 }
 
+// UpdateStatus mengupdate status book
 func (r *BookRepository) UpdateStatus(id uint, status string) error {
 	return r.DB.Model(&models.Book{}).Where("id = ?", id).Update("status", status).Error
 }
 
+// CheckISBNExists mengecek apakah ISBN sudah ada
 func (r *BookRepository) CheckISBNExists(isbn string, excludeID uint) (bool, error) {
 	var count int64
 	query := r.DB.Model(&models.Book{}).Where("isbn = ?", isbn)
 
 	if excludeID > 0 {
-		query = query.Where("id > ?", excludeID)
+		query = query.Where("id != ?", excludeID)
 	}
 
 	err := query.Count(&count).Error
